@@ -1,0 +1,37 @@
+name: hooklens
+
+services:
+  app:
+    build: .
+    ports:
+      - "8787:8080"
+    environment:
+      REDIS_ADDR: redis:6379
+      # 生产环境不要开 -allow-private；需要时再在 command 里显式加。
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 512mb
+      # 内存吃紧时优先淘汰最快过期的 bin，而不是把全局 bins 索引冲掉。
+      - --maxmemory-policy
+      - volatile-ttl
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  redis-data:

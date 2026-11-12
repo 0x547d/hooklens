@@ -1,0 +1,6 @@
+.gocache/
+.gotmp/
+.idea/
+hooklens
+*.rdb
+appendonlydir/
